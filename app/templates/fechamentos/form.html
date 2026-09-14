@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Fechamento de Turno - Pizzaria Fellice{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+  <a href="/fechamentos" style="color: #64748b; text-decoration: none; font-size: 13px;">&larr; Voltar para Fechamentos</a>
+  <h1 style="font-size: 22px; font-weight: 800; margin-top: 8px;">Iniciar Fechamento de Turno</h1>
+  <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+    Inicie a sessão de encerramento para consolidar entradas e contagens físicas.
+  </p>
+</div>
+
+<div class="form-card">
+  <form action="/fechamentos/iniciar" method="POST">
+    <div class="form-group">
+      <label for="loja_id">Filial</label>
+      <select name="loja_id" id="loja_id" class="form-control" required>
+        {% for l in lojas %}
+          <option value="{{ l.id }}" {% if loja_atual and loja_atual.id == l.id %}selected{% endif %}>{{ l.nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="turno">Turno de Operação</label>
+      <select name="turno" id="turno" class="form-control" required>
+        {% for t in turnos %}
+          <option value="{{ t }}" {% if t == 'NOITE' %}selected{% endif %}>Turno {{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="background: #fef9c3; border: 1px solid #fef08a; padding: 14px; border-radius: 8px; margin-bottom: 20px;">
+      <span style="font-size: 13px; color: #854d0e;">
+        ℹ️ Ao finalizar este fechamento, os registros do turno serão congelados e bloqueados para novas edições não autorizadas.
+      </span>
+    </div>
+
+    <div style="display: flex; gap: 12px;">
+      <button type="submit" class="btn btn-primary">Abrir Sessão de Fechamento</button>
+      <a href="/fechamentos" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Trilha de Auditoria - Pizzaria Fellice{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+  <div>
+    <h1 style="font-size: 22px; font-weight: 800;">Trilha de Auditoria & Rastreabilidade</h1>
+    <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+      Registro indelével de operações críticas: entradas com divergência, finalizações, reaberturas e cadastros.
+    </p>
+  </div>
+</div>
+
+<!-- FILTROS DE AUDITORIA -->
+<div class="card-table" style="padding: 16px; margin-bottom: 20px;">
+  <form method="GET" action="/auditoria" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <div style="width: 200px;">
+      <select name="entidade" class="form-control" style="margin-bottom: 0;">
+        <option value="">Todas as Entidades</option>
+        <option value="ENTRADA" {% if entidade_filtro == 'ENTRADA' %}selected{% endif %}>Entrada</option>
+        <option value="CONTAGEM" {% if entidade_filtro == 'CONTAGEM' %}selected{% endif %}>Contagem</option>
+        <option value="FECHAMENTO" {% if entidade_filtro == 'FECHAMENTO' %}selected{% endif %}>Fechamento</option>
+        <option value="PRODUTO" {% if entidade_filtro == 'PRODUTO' %}selected{% endif %}>Produto</option>
+        <option value="LOJA" {% if entidade_filtro == 'LOJA' %}selected{% endif %}>Loja</option>
+        <option value="USUARIO" {% if entidade_filtro == 'USUARIO' %}selected{% endif %}>Usuário</option>
+      </select>
+    </div>
+    <div style="width: 200px;">
+      <select name="acao" class="form-control" style="margin-bottom: 0;">
+        <option value="">Todas as Ações</option>
+        <option value="CRIACAO" {% if acao_filtro == 'CRIACAO' %}selected{% endif %}>Criação</option>
+        <option value="FINALIZACAO" {% if acao_filtro == 'FINALIZACAO' %}selected{% endif %}>Finalização</option>
+        <option value="REABERTURA" {% if acao_filtro == 'REABERTURA' %}selected{% endif %}>Reabertura</option>
+        <option value="DIVERGENCIA" {% if acao_filtro == 'DIVERGENCIA' %}selected{% endif %}>Divergência</option>
+        <option value="INATIVACAO" {% if acao_filtro == 'INATIVACAO' %}selected{% endif %}>Inativação</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm">Filtrar Logs</button>
+    {% if entidade_filtro or acao_filtro %}
+      <a href="/auditoria" class="btn btn-secondary btn-sm">Limpar</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="card-table">
+  <table class="table-custom">
+    <thead>
+      <tr>
+        <th>Data/Hora</th>
+        <th>Usuário Responsável</th>
+        <th>Módulo / Entidade</th>
+        <th>Ação</th>
+        <th>Detalhes / Payload</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td style="color: #64748b; font-size: 13px; font-weight: 600;">
+          {{ log.created_at.strftime('%d/%m/%Y %H:%M:%S') if log.created_at else '-' }}
+        </td>
+        <td style="font-weight: 700; color: #0f172a;">
+          {{ log.usuario.nome if log.usuario else 'Sistema / Anônimo' }}
+        </td>
+        <td>
+          <span class="badge" style="background: #e2e8f0; color: #1e293b; font-weight: 700;">{{ log.entidade }}</span>
+          {% if log.entidade_id %}
+            <span style="font-size: 11px; color: #64748b;">#{{ log.entidade_id }}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if 'REABERTURA' in log.acao %}
+            <span class="badge badge-warning">{{ log.acao }}</span>
+          {% elif 'DIVERGENCIA' in log.acao %}
+            <span class="badge badge-danger">{{ log.acao }}</span>
+          {% elif 'FINALIZACAO' in log.acao %}
+            <span class="badge badge-success">{{ log.acao }}</span>
+          {% else %}
+            <span class="badge" style="background: #f1f5f9; color: #334155;">{{ log.acao }}</span>
+          {% endif %}
+        </td>
+        <td style="font-size: 12px; color: #475569; max-width: 400px; word-break: break-all;">
+          {% if log.dados_novos %}
+            <code style="background: #f8fafc; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; display: block; max-height: 80px; overflow-y: auto;">
+              {{ log.dados_novos }}
+            </code>
+          {% elif log.dados_anteriores %}
+            <code style="background: #f8fafc; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;">
+              Anterior: {{ log.dados_anteriores }}
+            </code>
+          {% else %}
+            -
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" style="text-align: center; padding: 32px; color: #64748b;">
+          Nenhum registro de auditoria encontrado para o filtro aplicado.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

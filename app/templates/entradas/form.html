@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar entrada - Fellice Estoque{% endblock %}
+
+{% block content %}
+<!-- CABEÇALHO (SCREEN 4 FIGMA) -->
+<div style="margin-bottom: 24px;">
+  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-main);">Registrar entrada de produtos</h1>
+  <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+    Informe os produtos que chegaram na sua loja.
+  </p>
+</div>
+
+{% if erro %}
+<div class="alert-box alert-danger">
+  <strong>Atenção:</strong> {{ erro }}
+</div>
+{% endif %}
+
+<div class="form-card">
+  <form action="/entradas/novo" method="POST" id="formEntrada">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="loja_id">Filial de Destino</label>
+        <select name="loja_id" id="loja_id" class="form-control" required>
+          {% for l in lojas %}
+            <option value="{{ l.id }}" {% if loja_padrao_id == l.id %}selected{% endif %}>{{ l.nome.replace('Fellice ', '') }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="data_entrada">Data da entrada</label>
+        <input type="date" name="data_entrada" id="data_entrada" class="form-control" value="2025-09-08">
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="fornecedor">Fornecedor (Opcional)</label>
+        <input type="text" name="fornecedor" id="fornecedor" class="form-control" placeholder="ex: Laticínios Scala">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="nota_fiscal">Nota Fiscal (Opcional)</label>
+        <input type="text" name="nota_fiscal" id="nota_fiscal" class="form-control" placeholder="ex: NF-10492">
+      </div>
+    </div>
+
+    <!-- TABELA REPEATER DE PRODUTOS (FIGMA SCREEN 4) -->
+    <div style="margin-bottom: 16px;">
+      <table class="repeater-table" id="tabelaItens">
+        <thead>
+          <tr>
+            <th style="width: 50%;">Produto</th>
+            <th style="width: 25%;">Quantidade</th>
+            <th style="width: 15%;">Unidade</th>
+            <th style="width: 10%; text-align: center;"></th>
+          </tr>
+        </thead>
+        <tbody id="tbodyItens">
+          <tr>
+            <td>
+              <select name="produto_ids[]" class="form-control select-produto" onchange="atualizarUnidade(this)" required>
+                <option value="">Selecione o produto...</option>
+                {% for p in produtos %}
+                  <option value="{{ p.id }}" data-unidade="{{ p.unidade_medida.value }}">{{ p.nome }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <input type="number" step="0.001" name="quantidades[]" class="form-control" placeholder="0.000" required>
+            </td>
+            <td>
+              <span class="badge span-unidade" style="background: #e2e8f0; color: var(--text-main); font-size: 13px;">kg</span>
+            </td>
+            <td style="text-align: center;">
+              <button type="button" class="btn-remove-row" onclick="removerLinha(this)" title="Remover item">🗑️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <button type="button" class="btn btn-secondary btn-sm" onclick="adicionarLinha()" style="margin-top: 6px;">
+        ➕ Adicionar produto
+      </button>
+    </div>
+
+    <!-- NOTA INFORMATIVA (FIGMA SCREEN 4) -->
+    <div class="alert-box alert-info" style="display: flex; align-items: center; gap: 10px; margin-top: 24px;">
+      <span>ℹ️</span>
+      <span style="font-size: 13px;">A entrada será registrada apenas para a loja selecionada.</span>
+    </div>
+
+    <div style="display: flex; gap: 12px; margin-top: 24px;">
+      <a href="/entradas" class="btn btn-secondary" style="width: 120px;">Cancelar</a>
+      <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar entrada</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Inicializa data de hoje se vazio
+  document.addEventListener('DOMContentLoaded', () => {
+    const dataInput = document.getElementById('data_entrada');
+    if (dataInput && !dataInput.value) {
+      dataInput.value = new Date().toISOString().split('T')[0];
+    }
+  });
+
+  function atualizarUnidade(select) {
+    const selectedOption = select.options[select.selectedIndex];
+    const unidade = selectedOption.getAttribute('data-unidade') || 'UN';
+    const tr = select.closest('tr');
+    const span = tr.querySelector('.span-unidade');
+    if (span) span.textContent = unidade;
+  }
+
+  function adicionarLinha() {
+    const tbody = document.getElementById('tbodyItens');
+    const primeiraLinha = tbody.querySelector('tr');
+    const novaLinha = primeiraLinha.cloneNode(true);
+    novaLinha.querySelector('input').value = '';
+    novaLinha.querySelector('select').selectedIndex = 0;
+    novaLinha.querySelector('.span-unidade').textContent = '-';
+    tbody.appendChild(novaLinha);
+  }
+
+  function removerLinha(btn) {
+    const tbody = document.getElementById('tbodyItens');
+    if (tbody.querySelectorAll('tr').length > 1) {
+      btn.closest('tr').remove();
+    } else {
+      alert('A entrada deve conter ao menos um produto.');
+    }
+  }
+</script>
+{% endblock %}

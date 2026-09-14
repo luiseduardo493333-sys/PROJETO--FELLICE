@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Fechamento diário - Fellice Estoque{% endblock %}
+
+{% block content %}
+<!-- CABEÇALHO (SCREEN 6 FIGMA) -->
+<div style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
+  <div>
+    <h1 style="font-size: 22px; font-weight: 800; color: var(--text-main);">Fechamento diário</h1>
+    <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+      Confira o resumo do dia e finalize o fechamento da filial <strong>{{ fechamento.loja.nome.replace('Fellice ', '') }}</strong>.
+    </p>
+  </div>
+
+  <div style="display: flex; gap: 10px; align-items: center;">
+    {% if fechamento.status.value == 'EM_ANDAMENTO' or fechamento.status.value == 'REABERTO' %}
+      <form action="/fechamentos/{{ fechamento.id }}/finalizar" method="POST">
+        <button type="submit" class="btn btn-primary">
+          Confirmar fechamento
+        </button>
+      </form>
+    {% else %}
+      <span class="badge badge-success" style="font-size: 12px; padding: 8px 14px;">
+        ✓ Fechamento Finalizado
+      </span>
+      {% if usuario.role.value in ['ADMIN', 'GERENTE'] %}
+        <button type="button" class="btn btn-secondary btn-sm" onclick="openModal('modalReabrirFechamento')">
+          🔓 Reabrir Fechamento
+        </button>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<!-- MODAL DE REABERTURA DE FECHAMENTO -->
+<div class="modal-backdrop" id="modalReabrirFechamento">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-title" style="color: #b91c1c;">
+          <span>🔓</span> Reabertura de Fechamento
+        </div>
+        <div class="modal-subtitle">Desbloqueio supervisionado com registro permanente em auditoria</div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modalReabrirFechamento')">&times;</button>
+    </div>
+
+    <form action="/fechamentos/{{ fechamento.id }}/reabrir" method="POST">
+      <div class="modal-body">
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 14px; margin-bottom: 18px;">
+          <p style="font-size: 13px; color: #991b1b; line-height: 1.4;">
+            <strong>Atenção:</strong> A reabertura descongelará os saldos deste turno na filial <strong>{{ fechamento.loja.nome }}</strong>. Seu usuário e motivo serão registrados na trilha de auditoria para fins de compliance.
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label for="justificativa">Justificativa da Reabertura *</label>
+          <textarea name="justificativa" id="justificativa" rows="3" class="form-control" placeholder="Descreva formalmente a razão pela qual este turno precisa ser recalculado ou retificado..." required></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalReabrirFechamento')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" style="background: #b91c1c;">Confirmar Desbloqueio</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- DATA DO FECHAMENTO -->
+<div style="margin-bottom: 20px;">
+  <span class="badge" style="background: #f1f5f9; color: var(--text-main); font-size: 13px; padding: 6px 14px;">
+    📅 Data: {{ fechamento.data_fechamento.strftime("%d/%m/%Y") }} &nbsp;|&nbsp; Turno: {{ fechamento.turno.value }}
+  </span>
+</div>
+
+<!-- RESUMO DO DIA (SCREEN 6 FIGMA) -->
+<div style="margin-bottom: 20px;">
+  <h2 style="font-size: 15px; font-weight: 800; color: var(--text-main); margin-bottom: 12px;">Resumo do dia</h2>
+  <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 16px;">
+    <div class="stat-card">
+      <div class="stat-info">
+        <span class="stat-label">Estoque inicial</span>
+        <span class="stat-value">R$ 8.520,00</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-info">
+        <span class="stat-label">Entradas</span>
+        <span class="stat-value" style="color: #10b981;">R$ 1.230,00</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-info">
+        <span class="stat-label">Estoque final</span>
+        <span class="stat-value">R$ 8.840,00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HIGHLIGHT BANNER: CONSUMO DO DIA & RESULTADO DO DIA (FIGMA SCREEN 6) -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+    <div style="background: #fef2f2; border: 1px solid #fee2e2; padding: 18px 24px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 13px; font-weight: 700; color: #b91c1c;">Consumo do dia</div>
+        <div style="font-size: 24px; font-weight: 800; color: #dc2626; margin-top: 4px;">R$ 980,00</div>
+      </div>
+      <div style="font-size: 32px;">🍽️</div>
+    </div>
+
+    <div style="background: #fff1f2; border: 1px solid #ffe4e6; padding: 18px 24px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 13px; font-weight: 700; color: #9f1239;">Resultado do dia</div>
+        <div style="font-size: 24px; font-weight: 800; color: #e11d48; margin-top: 4px;">R$ 2.560,00</div>
+      </div>
+      <div style="font-size: 32px;">📈</div>
+    </div>
+  </div>
+</div>
+
+<!-- TABELA: PRODUTOS MAIS CONSUMIDOS (FIGMA SCREEN 6) -->
+<div class="card-box" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+  <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-light);">
+    <h2 class="card-box-title">Produtos mais consumidos</h2>
+  </div>
+
+  <table class="table-custom">
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th>Inicial</th>
+        <th>Entradas</th>
+        <th>Final</th>
+        <th>Consumo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in fechamento.itens %}
+      <tr>
+        <td style="font-weight: 700; color: var(--text-main);">{{ item.produto.nome if item.produto else 'Item' }}</td>
+        <td>{{ item.saldo_inicial|int if item.saldo_inicial == item.saldo_inicial|int else item.saldo_inicial }} UN</td>
+        <td style="color: #16a34a; font-weight: 600;">+{{ item.total_entradas|int if item.total_entradas == item.total_entradas|int else item.total_entradas }} UN</td>
+        <td style="font-weight: 700;">{{ item.contagem_final|int if item.contagem_final == item.contagem_final|int else item.contagem_final }} UN</td>
+        <td style="font-weight: 800; color: #dc2626;">{{ ((item.saldo_inicial + item.total_entradas - item.contagem_final)|round(2))|int }} UN</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">
+          Nenhum item apurado para este fechamento.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

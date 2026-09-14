@@ -1,0 +1,52 @@
+<!-- MODAL SELECIONAR LOJA (FIGMA SCREEN 10) -->
+{% if usuario and usuario.role.value == 'ADMIN' %}
+<div class="modal-backdrop" id="modalSelecionarLoja">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-title">
+          <span>📍</span> Selecionar Loja / Filial
+        </div>
+        <div class="modal-subtitle">Escolha a unidade operacional para focar visualizações e ações</div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modalSelecionarLoja')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="store-selection-grid">
+        <!-- Opção Todas as Lojas -->
+        <form action="/lojas/0/selecionar" method="POST" style="margin: 0;">
+          <button type="submit" class="store-option-card {% if not request.cookies.get('loja_ativa_id') or request.cookies.get('loja_ativa_id') == '0' %}active{% endif %}" style="width: 100%; text-align: left; background: none; border: 2px solid {% if not request.cookies.get('loja_ativa_id') or request.cookies.get('loja_ativa_id') == '0' %}var(--primary-red){% else %}#e2e8f0{% endif %};">
+            <div class="store-option-meta">
+              <div class="store-option-icon">🏢</div>
+              <div>
+                <div class="store-option-name">Todas as Lojas (Consolidado Geral)</div>
+                <div class="store-option-sub">Visão executiva unificada de todas as filiais</div>
+              </div>
+            </div>
+            {% if not request.cookies.get('loja_ativa_id') or request.cookies.get('loja_ativa_id') == '0' %}
+              <span class="badge badge-danger">Ativa</span>
+            {% endif %}
+          </button>
+        </form>
+
+        {% for l in lojas %}
+        <form action="/lojas/{{ l.id }}/selecionar" method="POST" style="margin: 0;">
+          <button type="submit" class="store-option-card {% if request.cookies.get('loja_ativa_id') == l.id|string %}active{% endif %}" style="width: 100%; text-align: left; background: none; border: 2px solid {% if request.cookies.get('loja_ativa_id') == l.id|string %}var(--primary-red){% else %}#e2e8f0{% endif %};">
+            <div class="store-option-meta">
+              <div class="store-option-icon">🍕</div>
+              <div>
+                <div class="store-option-name">{{ l.nome }}</div>
+                <div class="store-option-sub">{{ l.endereco or 'Unidade da rede' }}</div>
+              </div>
+            </div>
+            {% if request.cookies.get('loja_ativa_id') == l.id|string %}
+              <span class="badge badge-danger">Ativa</span>
+            {% endif %}
+          </button>
+        </form>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Contagem diária - Fellice Estoque{% endblock %}
+
+{% block content %}
+<!-- CABEÇALHO (SCREEN 5 FIGMA) -->
+<div style="margin-bottom: 24px;">
+  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-main);">Contagem diária</h1>
+  <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+    Confirme a quantidade de cada produto no final do dia.
+  </p>
+</div>
+
+{% if erro %}
+<div class="alert-box alert-danger">
+  <strong>Atenção:</strong> {{ erro }}
+</div>
+{% endif %}
+
+<div class="form-card" style="max-width: 100%;">
+  <form action="/contagens/novo" method="POST" id="formContagem">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="loja_id">Filial</label>
+        <select name="loja_id" id="loja_id" class="form-control" onchange="window.location.href='/contagens/novo?loja_id='+this.value">
+          {% for l in lojas %}
+            <option value="{{ l.id }}" {% if loja_atual and loja_atual.id == l.id %}selected{% endif %}>{{ l.nome.replace('Fellice ', '') }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="data_contagem">Data da contagem</label>
+        <input type="date" name="data_contagem" id="data_contagem" class="form-control" value="2025-09-08">
+      </div>
+    </div>
+
+    <!-- TABELA DE CONTAGEM FÍSICA (SCREEN 5 FIGMA) -->
+    <div class="card-table" style="margin-bottom: 20px; box-shadow: none; border: 1px solid var(--border-light);">
+      <table class="table-custom" id="tabelaContagem">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Estoque atual</th>
+            <th style="width: 180px;">Contagem final</th>
+            <th>Diferença</th>
+            <th>Observação / Justificativa</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lp in itens %}
+          <tr>
+            <td style="font-weight: 700; color: var(--text-main);">
+              {{ lp.produto.nome }}
+            </td>
+            <td style="color: var(--text-muted); font-weight: 600;">
+              <span id="saldo_{{ lp.produto_id }}">{{ lp.saldo_atual }}</span> {{ lp.produto.unidade_medida.value }}
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input 
+                  type="number" 
+                  step="0.001" 
+                  name="prod_{{ lp.produto_id }}" 
+                  class="form-control input-contagem" 
+                  data-prod-id="{{ lp.produto_id }}"
+                  data-saldo="{{ lp.saldo_atual }}"
+                  value="{{ lp.saldo_atual }}"
+                  required 
+                  oninput="calcularDiferenca(this)"
+                  style="font-weight: 700; text-align: right;"
+                >
+                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">{{ lp.produto.unidade_medida.value }}</span>
+              </div>
+            </td>
+            <td>
+              <span id="diff_badge_{{ lp.produto_id }}" class="badge" style="background: #f1f5f9; color: var(--text-muted); font-size: 13px;">
+                0 {{ lp.produto.unidade_medida.value }}
+              </span>
+            </td>
+            <td>
+              <input 
+                type="text" 
+                name="obs_{{ lp.produto_id }}" 
+                id="obs_{{ lp.produto_id }}"
+                class="form-control input-obs" 
+                placeholder="Motivo em caso de quebra ou perda..."
+                style="font-size: 12px;"
+              >
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">
+              Nenhum produto cadastrado para esta filial.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BOX INFORMATIVO (FIGMA SCREEN 5) -->
+    <div class="alert-box alert-danger" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+      <span style="font-size: 18px;">ℹ️</span>
+      <span style="font-weight: 600;">Após a contagem, o sistema calculará o consumo do dia.</span>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end;">
+      <button type="submit" class="btn btn-primary" style="padding: 12px 32px; font-size: 14px;">
+        Finalizar contagem
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  function calcularDiferenca(input) {
+    const prodId = input.getAttribute('data-prod-id');
+    const saldo = parseFloat(input.getAttribute('data-saldo')) || 0;
+    const contagem = parseFloat(input.value) || 0;
+    const diff = Math.round((contagem - saldo) * 1000) / 1000;
+
+    const badge = document.getElementById('diff_badge_' + prodId);
+    const obsInput = document.getElementById('obs_' + prodId);
+
+    if (diff === 0) {
+      badge.textContent = '0';
+      badge.className = 'badge';
+      badge.style.background = '#f1f5f9';
+      badge.style.color = '#64748b';
+      obsInput.removeAttribute('required');
+    } else if (diff < 0) {
+      badge.textContent = diff.toString();
+      badge.className = 'badge badge-danger';
+      badge.style.background = '#fee2e2';
+      badge.style.color = '#dc2626';
+      obsInput.setAttribute('required', 'required');
+    } else {
+      badge.textContent = '+' + diff.toString();
+      badge.className = 'badge badge-success';
+      badge.style.background = '#dcfce7';
+      badge.style.color = '#16a34a';
+      obsInput.removeAttribute('required');
+    }
+  }
+
+  // Roda o cálculo inicial
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.input-contagem').forEach(input => calcularDiferenca(input));
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Início - Fellice Estoque{% endblock %}
+
+{% block content %}
+<!-- SAUDAÇÃO (SCREEN 2 FIGMA) -->
+<div class="greeting-section">
+  <h1 class="greeting-title">Olá, {{ usuario.nome.split(' ')[0] }}!</h1>
+  <p class="greeting-subtitle">Aqui está o resumo da sua loja hoje.</p>
+</div>
+
+<!-- 4 CARDS DE KPI (SCREEN 2 FIGMA) -->
+<div class="stats-grid">
+  <!-- 1. Estoque Atual -->
+  <div class="stat-card">
+    <div class="stat-icon red">
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-label">Estoque atual</span>
+      <span class="stat-value">R$ 8.560,00</span>
+      <span class="stat-badge green">↑ 1,2% em relação à semana passada</span>
+    </div>
+  </div>
+
+  <!-- 2. Entradas do Dia -->
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <polyline points="19 12 12 19 5 12"></polyline>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-label">Entradas do dia</span>
+      <span class="stat-value">R$ 1.230,00</span>
+      <span class="stat-badge green">12 produtos recebidos</span>
+    </div>
+  </div>
+
+  <!-- 3. Consumo do Dia -->
+  <div class="stat-card">
+    <div class="stat-icon orange">
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-label">Consumo do dia</span>
+      <span class="stat-value">R$ 980,00</span>
+      <span class="stat-badge orange">8% do estoque</span>
+    </div>
+  </div>
+
+  <!-- 4. Fechamento -->
+  <div class="stat-card">
+    <div class="stat-icon blue">
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-label">Fechamento</span>
+      <span class="stat-value" style="color: #2563eb;">Pendente</span>
+      <a href="/fechamentos?modal=modalNovoFechamento" class="stat-badge blue" style="text-decoration: none;">Finalizar fechamento do dia &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<!-- GRADE EM 2 COLUNAS (SCREEN 2 FIGMA) -->
+<div class="dashboard-grid">
+  <!-- COLUNA ESQUERDA: ESTOQUE POR CATEGORIA -->
+  <div class="card-box">
+    <div class="card-box-header">
+      <h2 class="card-box-title">Estoque por categoria</h2>
+    </div>
+
+    <div>
+      {% for cat in categorias_progresso %}
+      <div class="cat-item">
+        <div class="cat-header">
+          <span style="color: var(--text-main); font-weight: 700;">{{ cat.nome }}</span>
+          <div style="display: flex; gap: 12px;">
+            <span style="color: var(--text-muted);">{{ cat.valor }}</span>
+            <span style="color: var(--text-main); font-weight: 700; width: 45px; text-align: right;">{{ cat.percentual }}%</span>
+          </div>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width: {{ cat.percentual }}%; background-color: {{ cat.cor }};"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- COLUNA DIREITA: AÇÕES RÁPIDAS & ÚLTIMOS FECHAMENTOS -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- AÇÕES RÁPIDAS -->
+    <div class="card-box" style="padding: 20px;">
+      <div class="card-box-header" style="margin-bottom: 14px;">
+        <h2 class="card-box-title">Acesso rápido</h2>
+      </div>
+
+      <div class="quick-actions-grid">
+        <a href="/entradas?modal=modalNovaEntrada" class="quick-action-item">
+          <span style="color: var(--primary-red); font-size: 16px;">➕</span>
+          <span>Registrar entrada</span>
+        </a>
+
+        <a href="/contagens?modal=modalNovaContagem" class="quick-action-item">
+          <span style="color: #10b981; font-size: 16px;">📋</span>
+          <span>Contagem do dia</span>
+        </a>
+
+        <a href="/estoque" class="quick-action-item">
+          <span style="color: #3b82f6; font-size: 16px;">📦</span>
+          <span>Ver estoque</span>
+        </a>
+
+        <a href="/relatorios" class="quick-action-item">
+          <span style="color: #8b5cf6; font-size: 16px;">📊</span>
+          <span>Ver relatório semanal</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ÚLTIMOS FECHAMENTOS -->
+    <div class="card-box">
+      <div class="card-box-header">
+        <h2 class="card-box-title">Últimos fechamentos</h2>
+        <a href="/fechamentos" style="font-size: 12px; font-weight: 700; color: var(--primary-red); text-decoration: none;">Ver todos &rarr;</a>
+      </div>
+
+      <table class="table-custom" style="font-size: 12px;">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Valor</th>
+            <th>Filial</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in ultimos_fechamentos %}
+          <tr>
+            <td style="font-weight: 600; color: var(--text-muted);">{{ f.data }}</td>
+            <td style="font-weight: 800; color: var(--text-main);">{{ f.valor }}</td>
+            <td><span class="badge" style="background: #f1f5f9; color: var(--text-main);">{{ f.loja_nome }}</span></td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 16px;">
+              Nenhum fechamento registrado recentemente.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

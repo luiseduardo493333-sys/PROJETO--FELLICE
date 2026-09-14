@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Nova Filial - Pizzaria Fellice{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+  <a href="/lojas" style="color: #64748b; text-decoration: none; font-size: 13px;">&larr; Voltar para Lojas</a>
+  <h1 style="font-size: 22px; font-weight: 800; margin-top: 8px;">Cadastrar Nova Filial</h1>
+  <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+    Cadastre os dados da nova unidade da rede para habilitar controle de estoque, contagens e fechamentos.
+  </p>
+</div>
+
+{% if erro %}
+<div class="alert-box alert-danger">
+  <strong>Erro:</strong> {{ erro }}
+</div>
+{% endif %}
+
+<div class="form-card">
+  <form action="/lojas/novo" method="POST">
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+      <div class="form-group">
+        <label for="nome">Nome da Filial *</label>
+        <input type="text" name="nome" id="nome" class="form-control" placeholder="ex: Fellice Nhocuné" required>
+      </div>
+
+      <div class="form-group">
+        <label for="codigo">Código Identificador (Sigla) *</label>
+        <input type="text" name="codigo" id="codigo" class="form-control" placeholder="ex: NHOCUNE" required style="text-transform: uppercase;">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="endereco">Endereço Completo</label>
+      <input type="text" name="endereco" id="endereco" class="form-control" placeholder="ex: Av. Dr. Pereira de Vergueiro, 120 - Vila Nhocuné">
+    </div>
+
+    <div class="form-group">
+      <label for="telefone">Telefone / Contato</label>
+      <input type="text" name="telefone" id="telefone" class="form-control" placeholder="ex: (11) 2741-0000">
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+      <a href="/lojas" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary">Salvar Filial</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

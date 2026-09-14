@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Contagens Diárias - Pizzaria Fellice{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+  <div>
+    <h1 style="font-size: 22px; font-weight: 800;">Histórico de Contagens Físicas</h1>
+    <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+      Auditorias de estoque físico confrontadas em tempo real com o saldo lógico da loja.
+    </p>
+  </div>
+
+  <button type="button" class="btn btn-primary btn-sm" onclick="openModal('modalNovaContagem')">
+    + Realizar Nova Contagem
+  </button>
+</div>
+
+<div class="card-table">
+  <table class="table-custom">
+    <thead>
+      <tr>
+        <th>Data / Hora</th>
+        <th>Filial</th>
+        <th>Operador Responsável</th>
+        <th>Total Itens Verificados</th>
+        <th>Observações Gerais</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in contagens %}
+      <tr>
+        <td>{{ c.data_contagem.strftime("%d/%m/%Y %H:%M") }}</td>
+        <td style="font-weight: 600;">{{ c.loja.nome if c.loja else '-' }}</td>
+        <td>{{ c.usuario.nome if c.usuario else '-' }}</td>
+        <td>{{ c.itens|length }} itens</td>
+        <td style="font-size: 13px; color: #64748b;">{{ c.observacao_geral or '-' }}</td>
+        <td>
+          <a href="/contagens/{{ c.id }}" class="btn btn-secondary btn-sm">Ver Confronto</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 32px; color: #64748b;">
+          Nenhuma contagem física registrada ainda.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL DE NOVA CONTAGEM -->
+<div class="modal-backdrop" id="modalNovaContagem">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-title">
+          <span>📋</span> Nova Contagem Física Diária
+        </div>
+        <div class="modal-subtitle">
+          Filial: <strong>{{ loja_atual.nome if loja_atual else 'Sua Filial' }}</strong> | Conferência de estoque real
+        </div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modalNovaContagem')">&times;</button>
+    </div>
+
+    <form action="/contagens/novo" method="POST">
+      <input type="hidden" name="loja_id" value="{{ loja_atual.id if loja_atual else 1 }}">
+      <div class="modal-body">
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">
+          Digite a quantidade física apurada para cada insumo. O sistema calculará divergências em tempo real.
+        </p>
+
+        <div style="overflow-x: auto; max-height: 400px;">
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>Produto / Insumo</th>
+                <th style="width: 110px;">Estoque Sistema</th>
+                <th style="width: 140px;">Contagem Física</th>
+                <th style="width: 100px;">Diferença</th>
+                <th>Justificativa / Motivo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in itens %}
+              <tr data-esperado="{{ item.saldo_atual }}">
+                <td>
+                  <strong style="color: #0f172a;">{{ item.produto.nome }}</strong>
+                  <div style="font-size: 11px; color: #64748b;">{{ item.produto.categoria }}</div>
+                </td>
+                <td style="font-weight: 700; color: #64748b;">
+                  {{ item.saldo_atual|int if item.saldo_atual == item.saldo_atual|int else item.saldo_atual }} UN
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    name="contado_{{ item.produto_id }}"
+                    class="form-control input-contagem-fisica"
+                    placeholder="Qtd. UN"
+                    value="{{ item.saldo_atual|int if item.saldo_atual == item.saldo_atual|int else item.saldo_atual }}"
+                    style="margin-bottom: 0; padding: 6px 10px; font-weight: 700;"
+                    required
+                  >
+                </td>
+                <td>
+                  <span class="diff-valor badge badge-success">0 UN</span>
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="obs_{{ item.produto_id }}"
+                    class="form-control input-obs"
+                    placeholder="Sem divergência apurada"
+                    style="margin-bottom: 0; padding: 6px 10px; font-size: 12px;"
+                  >
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="5" style="text-align: center; color: #64748b; padding: 24px;">
+                  Nenhum produto cadastrado para esta filial.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="form-group" style="margin-top: 16px; margin-bottom: 0;">
+          <label for="observacao_geral">Observações Gerais da Auditoria</label>
+          <input type="text" name="observacao_geral" id="observacao_geral" class="form-control" placeholder="ex: Contagem regular de encerramento do turno">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalNovaContagem')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Concluir e Salvar Contagem</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

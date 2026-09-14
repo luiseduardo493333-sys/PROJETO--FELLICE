@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Estoque - Fellice Estoque{% endblock %}
+
+{% block content %}
+<!-- CABEÇALHO (SCREEN 3 FIGMA) -->
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+  <div>
+    <h1 style="font-size: 22px; font-weight: 800; color: var(--text-main);">Estoque</h1>
+    <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+      Consulte a quantidade de cada produto no estoque da sua loja.
+    </p>
+  </div>
+
+  <div>
+    <a href="/entradas?modal=modalNovaEntrada" class="btn btn-primary">+ Registrar entrada</a>
+  </div>
+</div>
+
+<!-- BARRA DE BUSCA E FILTRO DE CATEGORIAS -->
+<div class="card-box" style="padding: 16px; margin-bottom: 20px;">
+  <form method="GET" action="/estoque" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 240px; position: relative;">
+      <input type="text" name="busca" id="buscaInput" value="{{ request.query_params.get('busca', '') }}" class="form-control" placeholder="🔍 Buscar produto..." onkeyup="filtrarTabela()">
+    </div>
+    
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="filter-pill active" onclick="filtrarCategoria('TODOS', this)">Todos</button>
+      <button type="button" class="filter-pill" onclick="filtrarCategoria('Laticínios', this)">Laticínios</button>
+      <button type="button" class="filter-pill" onclick="filtrarCategoria('Carnes & Embutidos', this)">Carnes</button>
+      <button type="button" class="filter-pill" onclick="filtrarCategoria('Molhos & Temperos', this)">Molhos</button>
+      <button type="button" class="filter-pill" onclick="filtrarCategoria('Bebidas', this)">Bebidas</button>
+      <button type="button" class="filter-pill" onclick="filtrarCategoria('Embalagens', this)">Embalagens</button>
+    </div>
+  </form>
+</div>
+
+<!-- TABELA DE PRODUTOS (SCREEN 3 FIGMA) -->
+<div class="card-table">
+  <table class="table-custom" id="tabelaEstoque">
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th>Categoria</th>
+        <th>Unidade</th>
+        <th>Quantidade</th>
+        <th>Estoque Mínimo</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in itens_estoque %}
+      <tr data-categoria="{{ item.categoria }}" data-nome="{{ item.nome.lower() }}">
+        <td style="font-weight: 700; color: var(--text-main);">{{ item.nome }}</td>
+        <td><span class="badge" style="background: #f1f5f9; color: var(--text-muted);">{{ item.categoria }}</span></td>
+        <td><span class="badge" style="background: #e2e8f0; color: #0f172a; font-weight: 700;">UN</span></td>
+        <td style="font-weight: 800; font-size: 15px; color: {% if item.saldo_atual <= item.estoque_minimo %}#dc2626{% else %}#16a34a{% endif %};">
+          {{ item.saldo_atual|int if item.saldo_atual == item.saldo_atual|int else item.saldo_atual }} UN
+        </td>
+        <td style="color: var(--text-muted); font-weight: 600;">
+          {{ item.estoque_minimo|int if item.estoque_minimo == item.estoque_minimo|int else item.estoque_minimo }} UN
+        </td>
+        <td>
+          {% if item.saldo_atual <= 0 %}
+            <span class="badge badge-danger">Zerado</span>
+          {% elif item.saldo_atual <= item.estoque_minimo %}
+            <span class="badge badge-warning">Abaixo do mín</span>
+          {% else %}
+            <span class="badge badge-success">Regular</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">
+          Nenhum item cadastrado no estoque desta filial.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  function filtrarTabela() {
+    const termo = document.getElementById('buscaInput').value.toLowerCase();
+    const linhas = document.querySelectorAll('#tabelaEstoque tbody tr');
+    linhas.forEach(linha => {
+      const nome = linha.getAttribute('data-nome') || '';
+      linha.style.display = nome.includes(termo) ? '' : 'none';
+    });
+  }
+
+  function filtrarCategoria(cat, btn) {
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const linhas = document.querySelectorAll('#tabelaEstoque tbody tr');
+    linhas.forEach(linha => {
+      const categoriaLinha = linha.getAttribute('data-categoria') || '';
+      if (cat === 'TODOS' || categoriaLinha.toLowerCase().includes(cat.toLowerCase())) {
+        linha.style.display = '';
+      } else {
+        linha.style.display = 'none';
+      }
+    });
+  }
+</script>
+{% endblock %}

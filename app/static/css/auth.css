@@ -1,0 +1,211 @@
+/* =============================================================
+   AUTH.CSS - PIZZARIA FELLICE ESTOQUE
+   Tela de Login Fiel ao Mockup do Figma
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Pacifico&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: 
+    linear-gradient(rgba(10, 15, 25, 0.76), rgba(10, 15, 25, 0.90)),
+    url('/static/img/pizza_fellice.jpg') center/cover no-repeat;
+  padding: 24px;
+}
+
+.auth-wrapper {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Brand Header */
+.auth-brand {
+  text-align: center;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-brand-logo {
+  width: 130px;
+  height: auto;
+  border-radius: 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  transition: transform 0.2s ease;
+}
+
+.auth-brand-logo:hover {
+  transform: scale(1.03);
+}
+
+.auth-pizza-icon {
+  font-size: 38px;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 4px 12px rgba(245, 158, 11, 0.4));
+}
+
+.auth-brand-title {
+  font-family: 'Pacifico', cursive;
+  font-size: 42px;
+  color: #ffffff;
+  line-height: 1.1;
+  letter-spacing: 0.5px;
+}
+
+.auth-brand-sub {
+  font-size: 13px;
+  font-weight: 800;
+  color: #f59e0b;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.auth-brand-desc {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 6px;
+}
+
+/* Card Container */
+.auth-card {
+  background: #0d1726;
+  width: 100%;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  padding: 36px 32px;
+  color: #ffffff;
+}
+
+.auth-card-title {
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+  color: #ffffff;
+  margin-bottom: 24px;
+}
+
+/* Form Inputs */
+.auth-group {
+  margin-bottom: 18px;
+  position: relative;
+}
+
+.auth-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #64748b;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.auth-input {
+  width: 100%;
+  background: #172338;
+  border: 1px solid #23324d;
+  color: #ffffff;
+  padding: 13px 14px 13px 44px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.auth-input:focus {
+  border-color: #dc2626;
+  background: #1b2940;
+}
+
+.auth-input::placeholder {
+  color: #64748b;
+}
+
+.auth-toggle-pwd {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.auth-toggle-pwd svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Submit Button */
+.btn-auth-submit {
+  width: 100%;
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+}
+
+.btn-auth-submit:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.auth-forgot-link {
+  display: block;
+  text-align: center;
+  margin-top: 18px;
+  font-size: 12px;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-forgot-link:hover {
+  color: #ffffff;
+}
+
+/* Footer Units */
+.auth-footer-units {
+  margin-top: 24px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}

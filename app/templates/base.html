@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>{% block title %}Fellice Estoque - Controle Operacional{% endblock %}</title>
+  <link rel="icon" type="image/png" href="/static/img/logo_fellice.png">
+  <link rel="stylesheet" href="/static/css/painel.css">
+  <link rel="stylesheet" href="/static/css/responsive.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</head>
+<body>
+
+  <!-- BARRA LATERAL (SIDEBAR DESKTOP) -->
+  {% include "components/sidebar.html" %}
+
+  <!-- MENU DRAWER LATERAL (SMARTPHONES E TABLETS) -->
+  {% include "components/drawer_menu.html" %}
+
+  <!-- WRAPPER DE CONTEÚDO PRINCIPAL -->
+  <div class="main-wrapper">
+    <!-- TOPBAR COM HAMBURGUER E SELETOR DE LOJAS -->
+    {% include "components/topbar.html" %}
+
+    <!-- CONTEÚDO DINÂMICO DAS TELAS -->
+    <main class="content-body">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- BARRA DE NAVEGAÇÃO INFERIOR MOBILE (BOTTOM NAV) -->
+  {% include "components/mobile_nav.html" %}
+
+  <!-- MODAL SELEÇÃO DE LOJA (FIGMA SCREEN 10) -->
+  {% include "components/modal_loja.html" %}
+
+  <script>
+    // Formatação de data em tempo real em português
+    document.addEventListener('DOMContentLoaded', () => {
+      const el = document.getElementById('liveDateBadge');
+      if (el) {
+        const hoje = new Date();
+        const opcoes = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dataFormatada = hoje.toLocaleDateString('pt-BR', opcoes);
+        el.textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+      }
+    });
+  </script>
+  <script src="/static/js/main.js"></script>
+</body>
+</html>

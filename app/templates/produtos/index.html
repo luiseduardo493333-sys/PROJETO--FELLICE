@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Produtos & Insumos - Pizzaria Fellice{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+  <div>
+    <h1 style="font-size: 22px; font-weight: 800;">Catálogo de Produtos & Insumos</h1>
+    <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+      Gestão de itens globais: queijos, carnes, molhos, farinhas, embalagens e bebidas.
+    </p>
+  </div>
+
+  {% if usuario.role.value in ['ADMIN', 'GERENTE'] %}
+  <div>
+    <button type="button" class="btn btn-primary btn-sm" onclick="openModal('modalNovoProduto')">+ Novo Produto</button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- BARRA DE FILTROS -->
+<div class="card-table" style="padding: 16px; margin-bottom: 20px;">
+  <form method="GET" action="/produtos" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 200px;">
+      <input type="text" name="busca" value="{{ busca }}" class="form-control" placeholder="Buscar por nome do produto..." style="margin-bottom: 0;">
+    </div>
+    <div style="width: 220px;">
+      <select name="categoria" class="form-control" style="margin-bottom: 0;">
+        <option value="">Todas as Categorias</option>
+        {% for cat in categorias %}
+          <option value="{{ cat }}" {% if categoria_selecionada == cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+    {% if busca or categoria_selecionada %}
+      <a href="/produtos" class="btn btn-secondary btn-sm">Limpar Filtros</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="card-table">
+  <table class="table-custom">
+    <thead>
+      <tr>
+        <th>Código SKU</th>
+        <th>Nome do Insumo / Produto</th>
+        <th>Categoria</th>
+        <th>Unidade</th>
+        <th>Status</th>
+        {% if usuario.role.value in ['ADMIN', 'GERENTE'] %}
+        <th>Ações</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in produtos %}
+      <tr>
+        <td style="font-weight: 700; color: #64748b;">{{ p.codigo_sku or '-' }}</td>
+        <td style="font-weight: 700; color: #0f172a;">{{ p.nome }}</td>
+        <td><span class="badge" style="background: #f1f5f9; color: #334155;">{{ p.categoria }}</span></td>
+        <td><span class="badge" style="background: #e2e8f0; color: #0f172a; font-weight: 700;">UN</span></td>
+        <td>
+          {% if p.ativo %}
+            <span class="badge badge-success">ATIVO</span>
+          {% else %}
+            <span class="badge badge-danger">INATIVO</span>
+          {% endif %}
+        </td>
+        {% if usuario.role.value in ['ADMIN', 'GERENTE'] %}
+        <td>
+          <div style="display: flex; gap: 6px;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="abrirModalEditarProduto('{{ p.id }}', '{{ p.nome|replace('\'', '\\\'') }}', '{{ p.categoria|replace('\'', '\\\'') }}', '{{ p.codigo_sku or '' }}')">
+              Editar
+            </button>
+            <form action="/produtos/{{ p.id }}/inativar" method="POST" style="display: inline;" onsubmit="return confirm('Deseja alternar o status deste produto?');">
+              <button type="submit" class="btn btn-secondary btn-sm" style="color: #dc2626;">
+                {{ 'Inativar' if p.ativo else 'Reativar' }}
+              </button>
+            </form>
+          </div>
+        </td>
+        {% endif %}
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 32px; color: #64748b;">
+          Nenhum produto cadastrado ou correspondente à busca.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL NOVO PRODUTO -->
+<div class="modal-backdrop" id="modalNovoProduto">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-title">
+          <span>🍕</span> Cadastrar Novo Insumo / Produto
+        </div>
+        <div class="modal-subtitle">Item global para controle de estoque por unidade</div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modalNovoProduto')">&times;</button>
+    </div>
+
+    <form action="/produtos/novo" method="POST">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="novo_prod_nome">Nome do Produto / Insumo *</label>
+          <input type="text" name="nome" id="novo_prod_nome" class="form-control" placeholder="ex: Queijo Mussarela Peça" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label for="novo_prod_categoria">Categoria *</label>
+            <input type="text" name="categoria" id="novo_prod_categoria" class="form-control" placeholder="ex: Laticínios, Molhos, Embalagens" required>
+          </div>
+
+          <div class="form-group">
+            <label for="novo_prod_unidade">Unidade de Medida *</label>
+            <select name="unidade_medida" id="novo_prod_unidade" class="form-control" required>
+              <option value="UN" selected>UN (Unidade)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="novo_prod_sku">Código Interno / SKU (Opcional)</label>
+          <input type="text" name="codigo_sku" id="novo_prod_sku" class="form-control" placeholder="ex: SKU-MUS-01">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="novo_prod_min">Estoque Mínimo (UN)</label>
+            <input type="number" step="1" name="estoque_minimo_padrao" id="novo_prod_min" value="10" class="form-control" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="novo_prod_max">Estoque Máximo (UN)</label>
+            <input type="number" step="1" name="estoque_maximo_padrao" id="novo_prod_max" value="100" class="form-control" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalNovoProduto')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Cadastrar Produto</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL EDITAR PRODUTO -->
+<div class="modal-backdrop" id="modalEditarProduto">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-title">
+          <span>✏️</span> Editar Produto / Insumo
+        </div>
+        <div class="modal-subtitle">Atualizar informações cadastrais do item</div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modalEditarProduto')">&times;</button>
+    </div>
+
+    <form id="formEditarProduto" method="POST" action="">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="edit_prod_nome">Nome do Produto / Insumo *</label>
+          <input type="text" name="nome" id="edit_prod_nome" class="form-control" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label for="edit_prod_categoria">Categoria *</label>
+            <input type="text" name="categoria" id="edit_prod_categoria" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label for="edit_prod_unidade">Unidade de Medida</label>
+            <select name="unidade_medida" id="edit_prod_unidade" class="form-control" required>
+              <option value="UN" selected>UN (Unidade)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="edit_prod_sku">Código Interno / SKU</label>
+          <input type="text" name="codigo_sku" id="edit_prod_sku" class="form-control">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalEditarProduto')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

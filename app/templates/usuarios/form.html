@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Usuário - Pizzaria Fellice{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+  <a href="/usuarios" style="color: #64748b; text-decoration: none; font-size: 13px;">&larr; Voltar para Usuários</a>
+  <h1 style="font-size: 22px; font-weight: 800; margin-top: 8px;">Cadastrar Novo Usuário</h1>
+  <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+    Crie credenciais e atribua perfil e filial de atuação para o colaborador.
+  </p>
+</div>
+
+{% if erro %}
+<div class="alert-box alert-danger">
+  <strong>Erro:</strong> {{ erro }}
+</div>
+{% endif %}
+
+<div class="form-card">
+  <form action="/usuarios/novo" method="POST">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div class="form-group">
+        <label for="nome">Nome Completo *</label>
+        <input type="text" name="nome" id="nome" class="form-control" placeholder="ex: Ana Silva" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">E-mail (Login) *</label>
+        <input type="email" name="email" id="email" class="form-control" placeholder="ex: ana.silva@fellice.com.br" required>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div class="form-group">
+        <label for="senha">Senha de Acesso *</label>
+        <input type="password" name="senha" id="senha" class="form-control" placeholder="Mínimo 6 caracteres" required>
+      </div>
+
+      <div class="form-group">
+        <label for="role">Perfil de Acesso (Papel) *</label>
+        <select name="role" id="role" class="form-control" required onchange="ajustarCampoLoja(this.value)">
+          <option value="FUNCIONARIO">FUNCIONÁRIO (Contagens e Entradas na sua loja)</option>
+          <option value="GERENTE">GERENTE (Gestão operacional da sua loja)</option>
+          <option value="ADMIN">ADMINISTRADOR (Acesso global a todas as lojas)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group" id="container-loja">
+      <label for="loja_id">Filial Vinculada (Obrigatório para Gerente e Funcionário)</label>
+      <select name="loja_id" id="loja_id" class="form-control">
+        <option value="">Selecione a loja...</option>
+        {% for l in lojas %}
+          <option value="{{ l.id }}">{{ l.nome }} ({{ l.codigo }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+      <a href="/usuarios" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary">Cadastrar Usuário</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  function ajustarCampoLoja(role) {
+    const container = document.getElementById('container-loja');
+    const select = document.getElementById('loja_id');
+    if (role === 'ADMIN') {
+      select.value = '';
+      select.removeAttribute('required');
+      container.style.opacity = '0.5';
+    } else {
+      select.setAttribute('required', 'required');
+      container.style.opacity = '1.0';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    ajustarCampoLoja(document.getElementById('role').value);
+  });
+</script>
+{% endblock %}

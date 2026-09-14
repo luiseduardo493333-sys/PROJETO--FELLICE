@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Usuários - Fellice Estoque{% endblock %}
+
+{% block content %}
+<!-- CABEÇALHO (SCREEN 8 FIGMA) -->
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+  <div>
+    <h1 style="font-size: 22px; font-weight: 800; color: var(--text-main);">Usuários</h1>
+    <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+      Gerencie os acessos dos usuários do sistema.
+    </p>
+  </div>
+
+  <div>
+    <button type="button" class="btn btn-primary" onclick="openModal('modalNovoUsuario')">+ Novo usuário</button>
+  </div>
+</div>
+
+{% if sucesso == 'transferido' %}
+<div class="alert-box" style="background: #dcfce7; border: 1px solid #bbf7d0; color: #15803d; margin-bottom: 20px;">
+  ✓ Colaborador transferido com sucesso e registrado na auditoria!
+</div>
+{% endif %}
+
+<!-- TABELA DE USUÁRIOS (FIGMA SCREEN 8) -->
+<div class="card-table" style="margin-bottom: 32px;">
+  <table class="table-custom">
+    <thead>
+      <tr>
+        <th>Colaborador</th>
+        <th>Perfil</th>
+        <th>Filial</th>
+        <th>Status</th>
+        <th style="text-align: right;">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in usuarios %}
+      <tr>
+        <td>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="user-avatar-circle" style="width: 34px; height: 34px; font-size: 12px; background: #e2e8f0; color: #0f172a;">
+              {{ u.nome[0] }}
+            </div>
+            <div>
+              <div style="font-weight: 700; color: var(--text-main);">{{ u.nome }}</div>
+              <div style="font-size: 11px; color: var(--text-muted);">{{ u.email }}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          {% if u.role.value == 'ADMIN' %}
+            <span class="badge" style="background: #e0e7ff; color: #3730a3;">Administrador</span>
+          {% elif u.role.value == 'GERENTE' %}
+            <span class="badge" style="background: #fef3c7; color: #92400e;">Gerente</span>
+          {% else %}
+            <span class="badge" style="background: #f1f5f9; color: var(--text-muted);">Funcionário</span>
+          {% endif %}
+        </td>
+        <td style="font-weight: 600; color: var(--text-main);">
+          {{ u.loja.nome.replace('Fellice ', '') if u.loja else 'Acesso Global' }}
+        </td>
+        <td>
+          {% if u.ativo %}
+            <span class="badge badge-success">Ativo</span>
+          {% else %}
+            <span class="badge badge-danger">Inativo</span>
+          {% endif %}
+        </td>
+        <td style="text-align: right;">
+          <div style="display: flex; gap: 6px; justify-content: flex-end;">
+            {% if u.role.value != 'ADMIN' %}
+              <button type="button" class="btn btn-secondary btn-sm" onclick="abrirModalTransferirUsuario('{{ u.id }}', '{{ u.nome|replace('\'', '\\\'') }}', '{{ u.loja.nome if u.loja else 'Sem Filial' }}', '{{ u.loja_id or 0 }}')">
+                Transferir
+              </button>
+            {% endif %}
+            {% if u.id != usuario.id %}
+            <form action="/usuarios/{{ u.id }}/status" method="POST" style="display: inline;" onsubmit="return confirm('Deseja alternar o status deste usuário?');">
+              <button type="submit" class="btn btn-secondary btn-sm" style="color: {% if u.ativo %}#dc2626{% else %}#16a34a{% endif %};">
+                {{ 'Inativar' if u.ativo else 'Ativar' }}
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- HISTÓRICO DE TRANSFERÊNCIAS (FIGMA SCREEN 9) -->
+<div class="card-box">
+  <div class="card-box-header" style="margin-bottom: 16px;">
+    <h2 class="card-box-title">Histórico de transferências entre lojas</h2>
+  </div>
+
+  <table class="table-custom" style="font-size: 13px;">
+    <thead>
+      <tr>
+        <th>Colaborador</th>
+        <th>Origem</th>
+        <th>Destino</th>
+        <th>Data da Transferência</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in historico_transferencias %}
+      <tr>
+        <td style="font-weight: 700; color: var(--text-main);">{{ h.usuario_nome }}</td>
+        <td><span class="badge" style="background: #f1f5f9; color: var(--text-muted);">{{ h.de }}</span></td>
+        <td><span class="badge" style="background: #e0e7ff; color: #4338ca;">{{ h.para }}</span></td>
+        <td style="color: var(--text-muted);">{{ h.data }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="4" style="text-align: center; color: #64748b; padding: 20px;">
+          Nenhuma transferência realizada recentemente.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL NOVO USUÁRIO -->
+<div class="modal-backdrop" id="modalNovoUsuario">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-title">
+          <span>👤</span> Cadastrar Novo Usuário
+        </div>
+        <div class="modal-subtitle">Credenciais e perfil de atuação do colaborador</div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modalNovoUsuario')">&times;</button>
+    </div>
+
+    <form action="/usuarios/novo" method="POST">
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label for="novo_usr_nome">Nome Completo *</label>
+            <input type="text" name="nome" id="novo_usr_nome" class="form-control" placeholder="ex: Ana Silva" required>
+          </div>
+
+          <div class="form-group">
+            <label for="novo_usr_email">E-mail (Login) *</label>
+            <input type="email" name="email" id="novo_usr_email" class="form-control" placeholder="ex: ana.silva@fellice.com.br" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label for="novo_usr_senha">Senha de Acesso *</label>
+            <input type="password" name="senha" id="novo_usr_senha" class="form-control" placeholder="Mínimo 6 caracteres" required>
+          </div>
+
+          <div class="form-group">
+            <label for="novo_usr_role">Perfil (Papel) *</label>
+            <select name="role" id="novo_usr_role" class="form-control" required onchange="ajustarLojaModal(this.value)">
+              <option value="FUNCIONARIO">FUNCIONÁRIO</option>
+              <option value="GERENTE">GERENTE</option>
+              <option value="ADMIN">ADMINISTRADOR</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" id="container_loja_modal" style="margin-bottom: 0;">
+          <label for="novo_usr_loja">Filial Vinculada</label>
+          <select name="loja_id" id="novo_usr_loja" class="form-control" required>
+            <option value="">Selecione a filial...</option>
+            {% for l in lojas %}
+              <option value="{{ l.id }}">{{ l.nome }} ({{ l.codigo }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalNovoUsuario')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Cadastrar Colaborador</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL TRANSFERIR USUÁRIO -->
+<div class="modal-backdrop" id="modalTransferirUsuario">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-title">
+          <span>🔄</span> Transferir Colaborador de Loja
+        </div>
+        <div class="modal-subtitle">Alteração de lotação com registro de auditoria</div>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modalTransferirUsuario')">&times;</button>
+    </div>
+
+    <form id="formTransferirUsuario" action="" method="POST">
+      <div class="modal-body">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+          <div style="font-size: 13px; color: #64748b;">Colaborador selecionado:</div>
+          <div id="transf_usuario_nome" style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 2px;"></div>
+          <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+            Filial atual: <strong id="transf_loja_atual" style="color: #b91c1c;"></strong>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="transf_nova_loja">Nova Filial de Atuação *</label>
+          <select name="nova_loja_id" id="transf_nova_loja" class="form-control" required>
+            <option value="">Selecione a nova filial...</option>
+            {% for l in lojas %}
+              <option value="{{ l.id }}">{{ l.nome }} ({{ l.codigo }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalTransferirUsuario')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Confirmar Transferência</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function ajustarLojaModal(role) {
+    const sel = document.getElementById('novo_usr_loja');
+    const cont = document.getElementById('container_loja_modal');
+    if (role === 'ADMIN') {
+      sel.value = '';
+      sel.removeAttribute('required');
+      cont.style.opacity = '0.5';
+    } else {
+      sel.setAttribute('required', 'required');
+      cont.style.opacity = '1.0';
+    }
+  }
+</script>
+{% endblock %}

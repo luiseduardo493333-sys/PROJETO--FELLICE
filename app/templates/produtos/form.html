@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if produto else 'Novo' }} Produto - Pizzaria Fellice{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+  <a href="/produtos" style="color: #64748b; text-decoration: none; font-size: 13px;">&larr; Voltar para Produtos</a>
+  <h1 style="font-size: 22px; font-weight: 800; margin-top: 8px;">{{ 'Editar Insumo/Produto' if produto else 'Cadastrar Novo Insumo/Produto' }}</h1>
+  <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+    Cadastre insumos para controle rigoroso de estoque físico, consumo e divergências.
+  </p>
+</div>
+
+{% if erro %}
+<div class="alert-box alert-danger">
+  <strong>Erro:</strong> {{ erro }}
+</div>
+{% endif %}
+
+<div class="form-card">
+  <form action="{{ '/produtos/' + produto.id|string + '/editar' if produto else '/produtos/novo' }}" method="POST">
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+      <div class="form-group">
+        <label for="nome">Nome do Produto / Insumo *</label>
+        <input type="text" name="nome" id="nome" value="{{ produto.nome if produto else '' }}" class="form-control" placeholder="ex: Queijo Mussarela Peça" required>
+      </div>
+
+      <div class="form-group">
+        <label for="categoria">Categoria *</label>
+        <input type="text" name="categoria" id="categoria" value="{{ produto.categoria if produto else '' }}" class="form-control" placeholder="ex: Laticínios, Molhos, Embalagens" required>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div class="form-group">
+        <label for="unidade_medida">Unidade de Medida *</label>
+        <select name="unidade_medida" id="unidade_medida" class="form-control" required>
+          {% for u in unidades %}
+            <option value="{{ u }}" {% if produto and produto.unidade_medida.value == u %}selected{% endif %}>{{ u }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="codigo_sku">Código Interno / SKU (Opcional)</label>
+        <input type="text" name="codigo_sku" id="codigo_sku" value="{{ produto.codigo_sku if produto and produto.codigo_sku else '' }}" class="form-control" placeholder="ex: SKU-MUS-001">
+      </div>
+    </div>
+
+    {% if not produto %}
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px;">
+      <div class="form-group">
+        <label for="estoque_minimo_padrao">Estoque Mínimo Padrão nas Lojas</label>
+        <input type="number" step="0.001" name="estoque_minimo_padrao" id="estoque_minimo_padrao" value="5.0" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="estoque_maximo_padrao">Estoque Máximo Padrão nas Lojas</label>
+        <input type="number" step="0.001" name="estoque_maximo_padrao" id="estoque_maximo_padrao" value="50.0" class="form-control" required>
+      </div>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+      <a href="/produtos" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary">{{ 'Atualizar Produto' if produto else 'Cadastrar Produto' }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Detalhe da Contagem #{{ contagem.id }} - Pizzaria Fellice{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
+  <div>
+    <a href="/contagens" style="color: #64748b; text-decoration: none; font-size: 13px;">&larr; Voltar para Contagens</a>
+    <h1 style="font-size: 22px; font-weight: 800; margin-top: 8px;">Confronto de Contagem Física #{{ contagem.id }}</h1>
+    <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+      Filial: <strong>{{ contagem.loja.nome }}</strong> | Data: <strong>{{ contagem.data_contagem.strftime("%d/%m/%Y %H:%M") }}</strong> | Operador: <strong>{{ contagem.usuario.nome }}</strong>
+    </p>
+  </div>
+
+  <div>
+    {% if total_divergentes > 0 %}
+      <span class="badge badge-danger" style="font-size: 13px; padding: 8px 14px;">
+        ⚠️ {{ total_divergentes }} divergência(s) encontrada(s)
+      </span>
+    {% else %}
+      <span class="badge badge-success" style="font-size: 13px; padding: 8px 14px;">
+        ✅ Estoque 100% alinhado
+      </span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card-table">
+  <div class="card-table-header">
+    <h3>Itens Apurados</h3>
+    <a href="/contagens/novo" class="btn btn-secondary btn-sm">+ Nova Contagem</a>
+  </div>
+
+  <table class="table-custom">
+    <thead>
+      <tr>
+        <th>Produto / Insumo</th>
+        <th>Unidade</th>
+        <th>Estoque Esperado</th>
+        <th>Contagem Física</th>
+        <th>Diferença Apurada</th>
+        <th>Justificativa / Motivo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in contagem.itens %}
+      <tr>
+        <td style="font-weight: 700; color: #0f172a;">{{ item.produto.nome }}</td>
+        <td>{{ item.produto.unidade_medida.value }}</td>
+        <td>{{ item.quantidade_esperada }} {{ item.produto.unidade_medida.value }}</td>
+        <td style="font-weight: 700;">{{ item.quantidade_contada }} {{ item.produto.unidade_medida.value }}</td>
+        <td>
+          {% if item.divergente %}
+            <span class="badge {% if item.diferenca < 0 %}badge-danger{% else %}badge-warning{% endif %}">
+              {{ '+' if item.diferenca > 0 else '' }}{{ item.diferenca }} {{ item.produto.unidade_medida.value }}
+            </span>
+          {% else %}
+            <span class="badge badge-success">0.000</span>
+          {% endif %}
+        </td>
+        <td style="font-size: 13px; color: {% if item.divergente %}#b91c1c{% else %}#64748b{% endif %};">
+          {{ item.observacao or '-' }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

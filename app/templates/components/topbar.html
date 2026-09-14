@@ -1,0 +1,59 @@
+<!-- TOPBAR (DESKTOP & MOBILE RESPONSIVE) -->
+<header class="topbar">
+  <div class="topbar-left">
+    <!-- BOTÃO HAMBURGUER (EXCLUSIVO MOBILE) -->
+    <button type="button" class="mobile-hamburger-btn" onclick="openDrawer()" aria-label="Abrir menu de navegação">
+      <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.2" fill="none">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+
+    <!-- BRAND VISÍVEL EM TELAS MOBILE -->
+    <a href="/painel" class="mobile-topbar-brand">
+      <img src="/static/img/logo_fellice.png" alt="Fellice" class="mobile-brand-img">
+      <span class="mobile-brand-title">Fellice <span style="color: var(--primary-red); font-size: 11px;">ESTOQUE</span></span>
+    </a>
+
+    <!-- SELETOR DE LOJA -->
+    {% if usuario and usuario.role.value == 'ADMIN' %}
+      <button type="button" class="store-selector-pill" onclick="openModal('modalSelecionarLoja')" title="Clique para trocar de filial">
+        <span class="store-pill-icon">📍</span>
+        <span class="store-pill-name">
+          {% set cookie_id = request.cookies.get('loja_ativa_id') %}
+          {% if not cookie_id or cookie_id == '0' %}
+            Todas as Lojas
+          {% else %}
+            {% set ns = namespace(achou=false) %}
+            {% for l in lojas if l.id|string == cookie_id %}
+              {{ l.nome.replace('Fellice ', '') }}
+              {% set ns.achou = true %}
+            {% endfor %}
+            {% if not ns.achou %}Filial Ativa{% endif %}
+          {% endif %}
+        </span>
+        <span class="store-pill-arrow">▼</span>
+      </button>
+    {% elif usuario and usuario.loja %}
+      <div class="store-selector-pill">
+        <span class="store-pill-icon">📍</span>
+        <span class="store-pill-name">{{ usuario.loja.nome.replace('Fellice ', '') }}</span>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="topbar-right">
+    <div class="current-date-badge" id="liveDateBadge">
+      Segunda, 08 de setembro de 2025
+    </div>
+
+    <button type="button" class="bell-icon-btn" title="Notificações">
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+      </svg>
+      <span class="bell-dot"></span>
+    </button>
+  </div>
+</header>
